@@ -4,6 +4,8 @@ import { db } from '@/db'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { SheetsSettings } from '@/components/sheets-settings'
+import { ExportButton } from '@/components/export-button'
+import { ImportButton } from '@/components/import-button'
 import Image from 'next/image'
 
 export default async function SettingsPage() {
@@ -60,6 +62,20 @@ export default async function SettingsPage() {
                 </p>
               )}
             </div>
+          </div>
+        </section>
+
+        {/* Export */}
+        <section className="mb-6 p-6 rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))]">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-[hsl(var(--muted-foreground))] mb-1">
+            Export
+          </h2>
+          <p className="text-sm text-[hsl(var(--muted-foreground))] mb-4">
+            Download all your vault data as a CSV file.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <ExportButton />
+            <ImportButton />
           </div>
         </section>
 

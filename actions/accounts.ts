@@ -1,7 +1,7 @@
 'use server'
 
 import { db } from '@/db'
-import { accounts, accountFields, users } from '@/db/schema'
+import { accounts, accountFields } from '@/db/schema'
 import { auth } from '@/auth'
 import { eq, and } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
@@ -17,11 +17,28 @@ async function getAuthedUserId() {
   return user.id
 }
 
+/**
+ * Encrypted field input. ciphertextB64/ivB64 are base64-encoded AES-GCM blobs
+ * produced by the client. Server stores them opaquely — never decrypts.
+ */
 export type FieldInput = {
   fieldKey: string
-  fieldValue: string
+  ciphertextB64: string | null  // null = empty field value
+  ivB64: string | null
   fieldType: 'text' | 'password' | 'pin' | 'email' | 'phone'
   sortOrder: number
+}
+
+function toDbField(f: FieldInput, accountId: string) {
+  return {
+    id: nanoid(),
+    accountId,
+    fieldKey: f.fieldKey,
+    fieldValueCiphertext: f.ciphertextB64 ? Buffer.from(f.ciphertextB64, 'base64') : null,
+    fieldValueIv: f.ivB64 ? Buffer.from(f.ivB64, 'base64') : null,
+    fieldType: f.fieldType,
+    sortOrder: f.sortOrder,
+  }
 }
 
 export async function createAccount(data: {
@@ -42,16 +59,7 @@ export async function createAccount(data: {
   })
 
   if (data.fields.length > 0) {
-    await db.insert(accountFields).values(
-      data.fields.map((f) => ({
-        id: nanoid(),
-        accountId,
-        fieldKey: f.fieldKey,
-        fieldValue: f.fieldValue,
-        fieldType: f.fieldType,
-        sortOrder: f.sortOrder,
-      }))
-    )
+    await db.insert(accountFields).values(data.fields.map((f) => toDbField(f, accountId)))
   }
 
   revalidatePath('/')
@@ -82,16 +90,7 @@ export async function updateAccount(
   await db.delete(accountFields).where(eq(accountFields.accountId, accountId))
 
   if (data.fields.length > 0) {
-    await db.insert(accountFields).values(
-      data.fields.map((f) => ({
-        id: nanoid(),
-        accountId,
-        fieldKey: f.fieldKey,
-        fieldValue: f.fieldValue,
-        fieldType: f.fieldType,
-        sortOrder: f.sortOrder,
-      }))
-    )
+    await db.insert(accountFields).values(data.fields.map((f) => toDbField(f, accountId)))
   }
 
   revalidatePath('/')

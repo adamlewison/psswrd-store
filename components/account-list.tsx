@@ -8,8 +8,6 @@ import { Input } from '@/components/ui/input'
 import { Plus, Search, X } from 'lucide-react'
 import type { AccountWithFields } from '@/lib/data'
 
-const PRESET_TYPES = ['Bank', 'Email', 'Investing', 'Social', 'Work', 'Shopping', 'Streaming', 'Other']
-
 export function AccountList({ accounts }: { accounts: AccountWithFields[] }) {
   const [query, setQuery] = useState('')
   const [activeType, setActiveType] = useState<string | null>(null)
@@ -19,6 +17,7 @@ export function AccountList({ accounts }: { accounts: AccountWithFields[] }) {
   // Derive all unique types present in the vault
   const allTypes = Array.from(new Set(accounts.map((a) => a.type))).sort()
 
+  // Search by name, type, and field key only — field values are encrypted
   const filtered = accounts.filter((a) => {
     const matchesType = !activeType || a.type === activeType
     if (!query.trim()) return matchesType
@@ -26,7 +25,7 @@ export function AccountList({ accounts }: { accounts: AccountWithFields[] }) {
     const matchesQuery =
       a.name.toLowerCase().includes(q) ||
       a.type.toLowerCase().includes(q) ||
-      a.fields.some((f) => (f.fieldValue ?? '').toLowerCase().includes(q) || f.fieldKey.toLowerCase().includes(q))
+      a.fields.some((f) => f.fieldKey.toLowerCase().includes(q))
     return matchesType && matchesQuery
   })
 
@@ -51,7 +50,7 @@ export function AccountList({ accounts }: { accounts: AccountWithFields[] }) {
               onChange={(e) => {
                 startTransition(() => setQuery(e.target.value))
               }}
-              placeholder="Search accounts…"
+              placeholder="Search by name or field key…"
               className="pl-9 h-9"
             />
             {query && (
@@ -70,7 +69,7 @@ export function AccountList({ accounts }: { accounts: AccountWithFields[] }) {
 
         {/* Type filter pills */}
         {allTypes.length > 1 && (
-          <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
             <button
               onClick={() => setActiveType(null)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-150 ${

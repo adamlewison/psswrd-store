@@ -26,9 +26,11 @@ export async function TopBar() {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 h-14 border-b border-[hsl(var(--border))] bg-[hsl(var(--background)/0.85)] backdrop-blur-md">
       <div className="max-w-[860px] mx-auto h-full px-4 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-[hsl(var(--foreground))] hover:opacity-80 transition-opacity">
-          <Lock className="w-4 h-4" />
-          Vault
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+          <Lock className="w-4 h-4 text-[hsl(var(--primary))]" style={{ filter: 'drop-shadow(0 0 4px hsl(var(--primary) / 0.6))' }} />
+          <span className="font-bold tracking-tighter text-[hsl(var(--foreground))]">
+            psswrd<span className="text-sm font-normal text-[hsl(var(--primary))]">.store</span>
+          </span>
         </Link>
 
         <div className="flex items-center gap-1">

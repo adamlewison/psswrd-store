@@ -1,5 +1,5 @@
 import { sql, relations } from 'drizzle-orm'
-import { text, integer, sqliteTable } from 'drizzle-orm/sqlite-core'
+import { text, integer, blob, sqliteTable } from 'drizzle-orm/sqlite-core'
 
 export const users = sqliteTable('users', {
   id: text('id').primaryKey(),
@@ -10,6 +10,12 @@ export const users = sqliteTable('users', {
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
     .default(sql`(unixepoch())`),
+  // Vault fields — added for zero-knowledge encryption
+  wrappedDek: blob('wrapped_dek'),       // AES-GCM(key=KEK, plaintext=DEK) — 48 bytes
+  dekIv: blob('dek_iv'),                 // 12-byte IV used to wrap the DEK
+  kekSalt: blob('kek_salt'),             // 16-byte random salt (Argon2id salt & HMAC input)
+  pinAttempts: integer('pin_attempts').notNull().default(0),
+  pinLockedUntil: integer('pin_locked_until'), // Unix timestamp, nullable
 })
 
 export const verificationTokens = sqliteTable('verification_tokens', {
@@ -40,7 +46,9 @@ export const accountFields = sqliteTable('account_fields', {
     .notNull()
     .references(() => accounts.id, { onDelete: 'cascade' }),
   fieldKey: text('field_key').notNull(),
-  fieldValue: text('field_value'),
+  // field_value replaced by encrypted blobs
+  fieldValueCiphertext: blob('field_value_ciphertext'), // AES-GCM ciphertext (includes 16-byte auth tag)
+  fieldValueIv: blob('field_value_iv'),                 // 12-byte IV per field
   fieldType: text('field_type')
     .notNull()
     .default('text'),

@@ -41,7 +41,7 @@ export function AccountCard({ account }: { account: AccountWithFields }) {
             </h3>
           </div>
 
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+          <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity shrink-0">
             <Button
               variant="ghost"
               size="icon"
@@ -69,11 +69,15 @@ export function AccountCard({ account }: { account: AccountWithFields }) {
                     {field.fieldKey}
                   </span>
                   <FieldValue
-                    value={field.fieldValue ?? ''}
+                    ciphertextB64={field.fieldValueCiphertext}
+                    ivB64={field.fieldValueIv}
                     fieldType={field.fieldType as 'text' | 'password' | 'pin' | 'email' | 'phone'}
                   />
                 </div>
-                <CopyButton value={field.fieldValue ?? ''} />
+                <CopyButton
+                  ciphertextB64={field.fieldValueCiphertext}
+                  ivB64={field.fieldValueIv}
+                />
               </div>
             ))}
           </div>
