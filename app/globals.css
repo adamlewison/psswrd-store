@@ -1,26 +1,106 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: 0 0% 100%;
+  --foreground: 240 10% 8%;
+  --card: 0 0% 98%;
+  --card-foreground: 240 10% 8%;
+  --popover: 0 0% 98%;
+  --popover-foreground: 240 10% 8%;
+  --primary: 240 6% 12%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 5% 94%;
+  --secondary-foreground: 240 6% 12%;
+  --muted: 240 5% 94%;
+  --muted-foreground: 240 5% 50%;
+  --accent: 230 80% 58%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5% 88%;
+  --input: 240 5% 88%;
+  --ring: 240 6% 12%;
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: 240 8% 8%;
+  --foreground: 0 0% 95%;
+  --card: 240 7% 11%;
+  --card-foreground: 0 0% 95%;
+  --popover: 240 7% 11%;
+  --popover-foreground: 0 0% 95%;
+  --primary: 0 0% 95%;
+  --primary-foreground: 240 8% 8%;
+  --secondary: 240 6% 15%;
+  --secondary-foreground: 0 0% 95%;
+  --muted: 240 6% 15%;
+  --muted-foreground: 240 5% 55%;
+  --accent: 230 80% 62%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 62% 55%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5% 18%;
+  --input: 240 5% 18%;
+  --ring: 0 0% 95%;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: hsl(var(--border));
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-size: 14px;
+  line-height: 1.6;
 }
+
+/* Type badge colours */
+.type-bank { background-color: #EEF2FF; color: #3730A3; }
+.type-email { background-color: #F0FDF4; color: #166534; }
+.type-investing { background-color: #FFF7ED; color: #9A3412; }
+.type-social { background-color: #FDF4FF; color: #6B21A8; }
+.type-work { background-color: #F0F9FF; color: #075985; }
+.type-streaming { background-color: #FFF1F2; color: #9F1239; }
+.type-shopping { background-color: #FEFCE8; color: #854D0E; }
+.type-other { background-color: #F9FAFB; color: #374151; }
+
+.dark .type-bank { background-color: #1e1b4b; color: #a5b4fc; }
+.dark .type-email { background-color: #14532d; color: #86efac; }
+.dark .type-investing { background-color: #431407; color: #fdba74; }
+.dark .type-social { background-color: #3b0764; color: #d8b4fe; }
+.dark .type-work { background-color: #082f49; color: #7dd3fc; }
+.dark .type-streaming { background-color: #4c0519; color: #fda4af; }
+.dark .type-shopping { background-color: #422006; color: #fde047; }
+.dark .type-other { background-color: #111827; color: #9ca3af; }
