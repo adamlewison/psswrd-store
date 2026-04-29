@@ -7,17 +7,17 @@
 // ── Utilities ──────────────────────────────────────────────────────────────
 
 export function base64ToBytes(b64: string): Uint8Array {
-  const binary = atob(b64)
-  const bytes = new Uint8Array(binary.length)
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-  return bytes
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
 }
 
 export function bytesToBase64(bytes: ArrayBuffer | Uint8Array): string {
-  const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes)
-  let binary = ''
-  for (let i = 0; i < arr.length; i++) binary += String.fromCharCode(arr[i])
-  return btoa(binary)
+  const arr = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  let binary = "";
+  for (let i = 0; i < arr.length; i++) binary += String.fromCharCode(arr[i]);
+  return btoa(binary);
 }
 
 // ── Key Derivation ─────────────────────────────────────────────────────────
@@ -31,10 +31,10 @@ export async function deriveKek(
   hmacB64: string,
   kekSaltB64: string,
 ): Promise<CryptoKey> {
-  const { argon2id } = await import('hash-wasm')
+  const { argon2id } = await import("hash-wasm");
 
-  const hmacBytes = base64ToBytes(hmacB64)
-  const kekSalt = base64ToBytes(kekSaltB64)
+  const hmacBytes = base64ToBytes(hmacB64);
+  const kekSalt = base64ToBytes(kekSaltB64);
 
   const kekBytes = await argon2id({
     password: hmacBytes,
@@ -43,19 +43,19 @@ export async function deriveKek(
     iterations: 3,
     memorySize: 65536, // 64 MB
     hashLength: 32,
-    outputType: 'binary',
-  })
+    outputType: "binary",
+  });
 
-  const keyBytes = new Uint8Array(kekBytes.length)
-  keyBytes.set(kekBytes)
+  const keyBytes = new Uint8Array(kekBytes.length);
+  keyBytes.set(kekBytes);
 
   return crypto.subtle.importKey(
-    'raw',
+    "raw",
     keyBytes,
-    { name: 'AES-GCM', length: 256 },
+    { name: "AES-GCM", length: 256 },
     false, // KEK not extractable
-    ['wrapKey', 'unwrapKey'],
-  )
+    ["wrapKey", "unwrapKey"],
+  );
 }
 
 // ── DEK Lifecycle ──────────────────────────────────────────────────────────
@@ -63,10 +63,10 @@ export async function deriveKek(
 /** Generate a fresh 256-bit AES-GCM DEK. Not extractable from JS. */
 export function generateDek(): Promise<CryptoKey> {
   return crypto.subtle.generateKey(
-    { name: 'AES-GCM', length: 256 },
+    { name: "AES-GCM", length: 256 },
     true, // must be extractable so wrapKey can read it
-    ['encrypt', 'decrypt'],
-  )
+    ["encrypt", "decrypt"],
+  );
 }
 
 /**
@@ -77,15 +77,15 @@ export async function wrapDek(
   dek: CryptoKey,
   kek: CryptoKey,
 ): Promise<{ wrappedDekB64: string; dekIvB64: string }> {
-  const dekIv = crypto.getRandomValues(new Uint8Array(12))
-  const wrappedDek = await crypto.subtle.wrapKey('raw', dek, kek, {
-    name: 'AES-GCM',
+  const dekIv = crypto.getRandomValues(new Uint8Array(12));
+  const wrappedDek = await crypto.subtle.wrapKey("raw", dek, kek, {
+    name: "AES-GCM",
     iv: dekIv,
-  })
+  });
   return {
     wrappedDekB64: bytesToBase64(wrappedDek),
     dekIvB64: bytesToBase64(dekIv),
-  }
+  };
 }
 
 /**
@@ -97,18 +97,18 @@ export async function unwrapDek(
   dekIvB64: string,
   kek: CryptoKey,
 ): Promise<CryptoKey> {
-  const wrappedDek = base64ToBytes(wrappedDekB64)
-  const dekIv = base64ToBytes(dekIvB64)
+  const wrappedDek = base64ToBytes(wrappedDekB64);
+  const dekIv = base64ToBytes(dekIvB64);
 
   return crypto.subtle.unwrapKey(
-    'raw',
+    "raw",
     wrappedDek.buffer as ArrayBuffer,
     kek,
-    { name: 'AES-GCM', iv: dekIv.buffer as ArrayBuffer },
-    { name: 'AES-GCM', length: 256 },
+    { name: "AES-GCM", iv: dekIv.buffer as ArrayBuffer },
+    { name: "AES-GCM", length: 256 },
     false, // DEK not extractable once unwrapped
-    ['encrypt', 'decrypt'],
-  )
+    ["encrypt", "decrypt"],
+  );
 }
 
 // ── Field Encryption ───────────────────────────────────────────────────────
@@ -122,19 +122,19 @@ export async function encryptField(
   value: string,
   dek: CryptoKey,
 ): Promise<{ ciphertextB64: string | null; ivB64: string | null }> {
-  if (!value) return { ciphertextB64: null, ivB64: null }
+  if (!value) return { ciphertextB64: null, ivB64: null };
 
-  const iv = crypto.getRandomValues(new Uint8Array(12))
+  const iv = crypto.getRandomValues(new Uint8Array(12));
   const ciphertext = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
+    { name: "AES-GCM", iv },
     dek,
     new TextEncoder().encode(value),
-  )
+  );
 
   return {
     ciphertextB64: bytesToBase64(ciphertext),
     ivB64: bytesToBase64(iv),
-  }
+  };
 }
 
 /**
@@ -146,14 +146,14 @@ export async function decryptField(
   ivB64: string,
   dek: CryptoKey,
 ): Promise<string> {
-  const ciphertext = base64ToBytes(ciphertextB64)
-  const iv = base64ToBytes(ivB64)
+  const ciphertext = base64ToBytes(ciphertextB64);
+  const iv = base64ToBytes(ivB64);
 
   const plaintext = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: iv.buffer as ArrayBuffer },
+    { name: "AES-GCM", iv: iv.buffer as ArrayBuffer },
     dek,
     ciphertext.buffer as ArrayBuffer,
-  )
+  );
 
-  return new TextDecoder().decode(plaintext)
+  return new TextDecoder().decode(plaintext);
 }
