@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { signIn } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 
@@ -8,23 +8,82 @@ export default function LoginButton() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
+  const [code, setCode] = useState('')
+  const [verifying, setVerifying] = useState(false)
+  const [codeError, setCodeError] = useState(false)
+  const codeInputRef = useRef<HTMLInputElement>(null)
 
   async function handleEmailSignIn(e: React.SyntheticEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!email) return
     setLoading(true)
     const result = await signIn('resend', { email, redirect: false })
-    if (result?.ok) setSent(true)
+    if (result?.ok) {
+      setSent(true)
+      setTimeout(() => codeInputRef.current?.focus(), 50)
+    }
     setLoading(false)
+  }
+
+  async function handleCodeSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (code.length !== 6) return
+    setVerifying(true)
+    setCodeError(false)
+    const res = await fetch('/api/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code }),
+    })
+    if (!res.ok) {
+      setCodeError(true)
+      setVerifying(false)
+      return
+    }
+    const params = new URLSearchParams({ token: code, email, callbackUrl: '/' })
+    window.location.href = `/api/auth/callback/resend?${params}`
   }
 
   if (sent) {
     return (
-      <div className="text-center space-y-1">
-        <p className="text-sm font-medium text-[hsl(var(--foreground))]">Check your inbox</p>
-        <p className="text-xs text-[hsl(var(--muted-foreground))]">
-          A sign-in link was sent to <span className="font-medium">{email}</span>
-        </p>
+      <div className="space-y-4">
+        <div className="text-center space-y-1">
+          <p className="text-sm font-medium text-[hsl(var(--foreground))]">Check your inbox</p>
+          <p className="text-xs text-[hsl(var(--muted-foreground))]">
+            A 6-digit code was sent to <span className="font-medium">{email}</span>
+          </p>
+        </div>
+        <form onSubmit={handleCodeSubmit} className="space-y-3">
+          <input
+            ref={codeInputRef}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]{6}"
+            maxLength={6}
+            placeholder="000000"
+            value={code}
+            onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setCodeError(false) }}
+            required
+            className={`w-full h-12 rounded-md border bg-transparent px-3 text-center text-2xl font-mono tracking-[0.4em] text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] ${codeError ? 'border-red-500' : 'border-[hsl(var(--border))]'}`}
+          />
+          {codeError && (
+            <p className="text-xs text-red-500 text-center">Invalid or expired code. Try again.</p>
+          )}
+          <Button
+            type="submit"
+            disabled={verifying || code.length !== 6}
+            className="w-full h-11 text-sm font-medium"
+          >
+            {verifying ? 'Verifying…' : 'Verify code'}
+          </Button>
+        </form>
+        <button
+          type="button"
+          onClick={() => { setSent(false); setCode('') }}
+          className="w-full text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors"
+        >
+          Use a different email
+        </button>
       </div>
     )
   }
@@ -66,7 +125,7 @@ export default function LoginButton() {
         </div>
       </div>
 
-      <form onSubmit={handleEmailSignIn} className="space-y-3">
+<form onSubmit={handleEmailSignIn} className="space-y-3">
         <input
           type="email"
           placeholder="you@example.com"

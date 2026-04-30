@@ -3,7 +3,7 @@ import Google from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";
 import { DrizzleAdapter } from "@/lib/auth-adapter";
 
-function buildSignInEmail(url: string): { html: string; text: string } {
+function buildSignInEmail(code: string): { html: string; text: string } {
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,12 +23,10 @@ function buildSignInEmail(url: string): { html: string; text: string } {
               <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="padding-right:10px;vertical-align:middle;">
-                    <!-- Lock icon -->
                     <table role="presentation" cellpadding="0" cellspacing="0">
                       <tr>
                         <td style="width:36px;height:36px;background-color:#eef0ff;border-radius:10px;text-align:center;vertical-align:middle;">
-                                                    <img src="https://psswrd.store/lock.svg" width="18" height="18" alt="" style="display:block;margin:9px auto;" />
-
+                          <img src="https://psswrd.store/lock.svg" width="18" height="18" alt="" style="display:block;margin:9px auto;" />
                         </td>
                       </tr>
                     </table>
@@ -56,21 +54,19 @@ function buildSignInEmail(url: string): { html: string; text: string } {
 
               <!-- Heading -->
               <p style="margin:0 0 10px;font-size:22px;font-weight:700;color:#111116;letter-spacing:-0.3px;line-height:1.3;">
-                Sign in to your vault
+                Your sign-in code
               </p>
 
               <!-- Body text -->
               <p style="margin:0 0 28px;font-size:14px;color:#6b6b80;line-height:1.6;">
-                Click the button below to securely sign in to psswrd.store. This link expires in <strong style="color:#111116;font-weight:600;">24 hours</strong> and can only be used once.
+                Enter this code on the psswrd.store sign-in page. It expires in <strong style="color:#111116;font-weight:600;">10 minutes</strong> and can only be used once.
               </p>
 
-              <!-- CTA Button -->
+              <!-- Code display -->
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
                 <tr>
-                  <td style="background-color:#4f5eed;border-radius:10px;">
-                    <a href="${url}" target="_blank" style="display:inline-block;padding:14px 32px;font-size:14px;font-weight:600;color:#ffffff;text-decoration:none;letter-spacing:0.01em;">
-                      Sign in to psswrd.store →
-                    </a>
+                  <td style="background-color:#f4f4f6;border:1px solid #e2e2ea;border-radius:12px;padding:20px 36px;text-align:center;">
+                    <span style="font-size:36px;font-weight:700;letter-spacing:0.2em;color:#111116;font-family:'SF Mono',Menlo,Consolas,monospace;">${code}</span>
                   </td>
                 </tr>
               </table>
@@ -82,11 +78,7 @@ function buildSignInEmail(url: string): { html: string; text: string } {
                 </tr>
               </table>
 
-              <!-- Or copy link -->
-              <p style="margin:0 0 8px;font-size:12px;color:#9898aa;">Or copy this link into your browser:</p>
-              <p style="margin:0;font-size:11px;color:#6b6b80;word-break:break-all;font-family:'SF Mono',Menlo,Consolas,monospace;background-color:#f4f4f6;border-radius:6px;padding:10px 12px;">
-                ${url}
-              </p>
+              <p style="margin:0;font-size:12px;color:#9898aa;">Do not share this code with anyone.</p>
 
             </td>
           </tr>
@@ -117,7 +109,7 @@ function buildSignInEmail(url: string): { html: string; text: string } {
 </body>
 </html>`;
 
-  const text = `Sign in to psswrd.store\n\nClick the link below to sign in. It expires in 24 hours and can only be used once.\n\n${url}\n\nIf you didn't request this, you can safely ignore this email.\n\npsswrd.store — AES-256-GCM Encrypted`;
+  const text = `Sign in to psswrd.store\n\nYour sign-in code is: ${code}\n\nIt expires in 10 minutes and can only be used once. Do not share this code with anyone.\n\nIf you didn't request this, you can safely ignore this email.\n\npsswrd.store — AES-256-GCM Encrypted`;
 
   return { html, text };
 }
@@ -130,8 +122,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Resend({
       apiKey: process.env.RESEND_API_KEY,
       from: process.env.RESEND_FROM ?? "psswrd.store <onboarding@resend.dev>",
-      async sendVerificationRequest({ identifier: email, url, provider }) {
-        const { html, text } = buildSignInEmail(url);
+      maxAge: 10 * 60, // 10 minutes
+      generateVerificationToken: async () => {
+        return String(Math.floor(100000 + Math.random() * 900000));
+      },
+      async sendVerificationRequest({ identifier: email, token, provider }) {
+        const { html, text } = buildSignInEmail(token);
         const res = await fetch("https://api.resend.com/emails", {
           method: "POST",
           headers: {
@@ -141,7 +137,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           body: JSON.stringify({
             from: provider.from,
             to: email,
-            subject: "Your sign-in link for psswrd.store",
+            subject: "Your psswrd.store sign-in code",
             html,
             text,
           }),

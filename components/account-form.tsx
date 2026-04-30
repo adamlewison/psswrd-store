@@ -15,13 +15,21 @@ import type { AccountWithFields } from '@/lib/data'
 import { toast } from 'sonner'
 
 const ACCOUNT_TYPES = ['Bank', 'Email', 'Investing', 'Social', 'Work', 'Shopping', 'Streaming', 'Other']
-const FIELD_TYPES = ['text', 'password', 'pin', 'email', 'phone'] as const
 
 type LocalField = {
   id: string
   fieldKey: string
   fieldValue: string   // plaintext in form state
   fieldType: FieldInput['fieldType']
+}
+
+function detectFieldType(key: string): FieldInput['fieldType'] {
+  const k = key.toLowerCase()
+  if (/password|pass|secret|token|api.?key/.test(k)) return 'password'
+  if (/pin|passcode/.test(k)) return 'pin'
+  if (/email|e-mail/.test(k)) return 'email'
+  if (/phone|mobile|cell|tel/.test(k)) return 'phone'
+  return 'text'
 }
 
 function newField(): LocalField {
@@ -77,7 +85,7 @@ export function AccountForm({ open, onOpenChange, account }: AccountFormProps) {
           ]
     )
     setDecrypting(!!account)
-  }, [account])
+  }, [account, open])
 
   // Decrypt existing field values when form opens
   useEffect(() => {
@@ -238,22 +246,9 @@ export function AccountForm({ open, onOpenChange, account }: AccountFormProps) {
                       <Input
                         placeholder="Key (e.g. Password)"
                         value={field.fieldKey}
-                        onChange={(e) => updateField(field.id, { fieldKey: e.target.value })}
+                        onChange={(e) => updateField(field.id, { fieldKey: e.target.value, fieldType: detectFieldType(e.target.value) })}
                         className="h-8 text-xs"
                       />
-                      <Select
-                        value={field.fieldType}
-                        onValueChange={(v) => updateField(field.id, { fieldType: v as FieldInput['fieldType'] })}
-                      >
-                        <SelectTrigger className="h-8 text-xs w-full sm:w-28 shrink-0">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {FIELD_TYPES.map((t) => (
-                            <SelectItem key={t} value={t}>{t}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
                     </div>
                     <Input
                       placeholder="Value"
