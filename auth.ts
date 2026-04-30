@@ -121,7 +121,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     Google({ allowDangerousEmailAccountLinking: true }),
     Resend({
       apiKey: process.env.RESEND_API_KEY,
-      from: process.env.RESEND_FROM ?? "psswrd.store <onboarding@resend.dev>",
+      from: process.env.RESEND_FROM ?? "psswrd.store <noreply@servvio.com>",
       maxAge: 10 * 60, // 10 minutes
       generateVerificationToken: async () => {
         return String(Math.floor(100000 + Math.random() * 900000));
