@@ -22,15 +22,6 @@ function buildSignInEmail(code: string): { html: string; text: string } {
             <td align="center" style="padding-bottom:28px;">
               <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="padding-right:10px;vertical-align:middle;">
-                    <table role="presentation" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td style="width:36px;height:36px;background-color:#eef0ff;border-radius:10px;text-align:center;vertical-align:middle;">
-                          <img src="https://psswrd.store/lock.svg" width="18" height="18" alt="" style="display:block;margin:9px auto;" />
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
                   <td style="vertical-align:middle;">
                     <span style="font-size:22px;font-weight:700;letter-spacing:-0.5px;color:#111116;">psswrd</span><span style="font-size:15px;font-weight:400;color:#4f5eed;">.store</span>
                   </td>
@@ -58,9 +49,7 @@ function buildSignInEmail(code: string): { html: string; text: string } {
               </p>
 
               <!-- Body text -->
-              <p style="margin:0 0 28px;font-size:14px;color:#6b6b80;line-height:1.6;">
-                Enter this code on the psswrd.store sign-in page. It expires in <strong style="color:#111116;font-weight:600;">10 minutes</strong> and can only be used once.
-              </p>
+              
 
               <!-- Code display -->
               <table role="presentation" cellpadding="0" cellspacing="0" style="margin-bottom:28px;">
@@ -70,6 +59,10 @@ function buildSignInEmail(code: string): { html: string; text: string } {
                   </td>
                 </tr>
               </table>
+
+              <p style="margin:0 0 28px;font-size:14px;color:#6b6b80;line-height:1.6;">
+                Enter this code on the psswrd.store sign-in page. It expires in <strong style="color:#111116;font-weight:600;">10 minutes</strong> and can only be used once.
+              </p>
 
               <!-- Divider -->
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
