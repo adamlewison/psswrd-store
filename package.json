@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "migrate": "dotenv -e .env.local -- drizzle-kit migrate"
+    "migrate:generate": "dotenv -e .env.local -- drizzle-kit generate --out ./drizzle",
+    "migrate:local": "dotenv -e .env.local -- drizzle-kit migrate",
+    "migrate:production": "dotenv -e .env.production -- drizzle-kit migrate"
   },
   "dependencies": {
     "@libsql/client": "^0.17.2",
