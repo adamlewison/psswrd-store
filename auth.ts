@@ -118,7 +118,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: DrizzleAdapter,
   session: { strategy: "jwt" },
   providers: [
-    Google,
+    Google({ allowDangerousEmailAccountLinking: true }),
     Resend({
       apiKey: process.env.RESEND_API_KEY,
       from: process.env.RESEND_FROM ?? "psswrd.store <onboarding@resend.dev>",

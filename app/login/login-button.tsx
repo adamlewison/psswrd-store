@@ -1,56 +1,63 @@
-'use client'
+"use client";
 
-import { useState, useRef } from 'react'
-import { signIn } from 'next-auth/react'
-import { Button } from '@/components/ui/button'
+import { useState, useRef } from "react";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
 
 export default function LoginButton() {
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [sent, setSent] = useState(false)
-  const [code, setCode] = useState('')
-  const [verifying, setVerifying] = useState(false)
-  const [codeError, setCodeError] = useState(false)
-  const codeInputRef = useRef<HTMLInputElement>(null)
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [code, setCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [codeError, setCodeError] = useState(false);
+  const codeInputRef = useRef<HTMLInputElement>(null);
 
   async function handleEmailSignIn(e: React.SyntheticEvent<HTMLFormElement>) {
-    e.preventDefault()
-    if (!email) return
-    setLoading(true)
-    const result = await signIn('resend', { email, redirect: false })
+    e.preventDefault();
+    if (!email) return;
+    setLoading(true);
+    const result = await signIn("resend", { email, redirect: false });
     if (result?.ok) {
-      setSent(true)
-      setTimeout(() => codeInputRef.current?.focus(), 50)
+      setSent(true);
+      setTimeout(() => codeInputRef.current?.focus(), 50);
     }
-    setLoading(false)
+    setLoading(false);
   }
 
   async function handleCodeSubmit(e: React.SyntheticEvent<HTMLFormElement>) {
-    e.preventDefault()
-    if (code.length !== 6) return
-    setVerifying(true)
-    setCodeError(false)
-    const res = await fetch('/api/verify-otp', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    e.preventDefault();
+    if (code.length !== 6) return;
+    setVerifying(true);
+    setCodeError(false);
+    const res = await fetch("/api/verify-otp", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, code }),
-    })
+    });
     if (!res.ok) {
-      setCodeError(true)
-      setVerifying(false)
-      return
+      setCodeError(true);
+      setVerifying(false);
+      return;
     }
-    const params = new URLSearchParams({ token: code, email, callbackUrl: '/' })
-    window.location.href = `/api/auth/callback/resend?${params}`
+    const params = new URLSearchParams({
+      token: code,
+      email,
+      callbackUrl: "/",
+    });
+    window.location.href = `/api/auth/callback/resend?${params}`;
   }
 
   if (sent) {
     return (
       <div className="space-y-4">
         <div className="text-center space-y-1">
-          <p className="text-sm font-medium text-[hsl(var(--foreground))]">Check your inbox</p>
+          <p className="text-sm font-medium text-[hsl(var(--foreground))]">
+            Check your inbox
+          </p>
           <p className="text-xs text-[hsl(var(--muted-foreground))]">
-            A 6-digit code was sent to <span className="font-medium">{email}</span>
+            A 6-digit code was sent to{" "}
+            <span className="font-medium">{email}</span>
           </p>
         </div>
         <form onSubmit={handleCodeSubmit} className="space-y-3">
@@ -62,40 +69,81 @@ export default function LoginButton() {
             maxLength={6}
             placeholder="000000"
             value={code}
-            onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setCodeError(false) }}
+            onChange={(e) => {
+              setCode(e.target.value.replace(/\D/g, ""));
+              setCodeError(false);
+            }}
             required
-            className={`w-full h-12 rounded-md border bg-transparent px-3 text-center text-2xl font-mono tracking-[0.4em] text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] ${codeError ? 'border-red-500' : 'border-[hsl(var(--border))]'}`}
+            className={`w-full h-12 rounded-md border bg-transparent px-3 text-center text-2xl font-mono tracking-[0.4em] text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))] ${codeError ? "border-red-500" : "border-[hsl(var(--border))]"}`}
           />
           {codeError && (
-            <p className="text-xs text-red-500 text-center">Invalid or expired code. Try again.</p>
+            <p className="text-xs text-red-500 text-center">
+              Invalid or expired code. Try again.
+            </p>
           )}
           <Button
             type="submit"
             disabled={verifying || code.length !== 6}
             className="w-full h-11 text-sm font-medium"
           >
-            {verifying ? 'Verifying…' : 'Verify code'}
+            {verifying ? "Verifying…" : "Verify code"}
           </Button>
         </form>
         <button
           type="button"
-          onClick={() => { setSent(false); setCode('') }}
+          onClick={() => {
+            setSent(false);
+            setCode("");
+          }}
           className="w-full text-xs text-[hsl(var(--muted-foreground))] hover:text-[hsl(var(--foreground))] transition-colors"
         >
           Use a different email
         </button>
       </div>
-    )
+    );
   }
 
   return (
     <div className="space-y-4">
+      <form onSubmit={handleEmailSignIn} className="space-y-3">
+        <input
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="w-full h-11 rounded-md border border-[hsl(var(--border))] bg-transparent px-3 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]"
+        />
+        <Button
+          type="submit"
+          disabled={loading || !email}
+          className="w-full h-11 text-sm font-medium"
+        >
+          {loading ? "Sending…" : "Continue with Email"}
+        </Button>
+      </form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-[hsl(var(--border))]" />
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-[hsl(var(--card)/0.8)] px-2 text-[hsl(var(--muted-foreground))]">
+            or
+          </span>
+        </div>
+      </div>
+
       <Button
-        onClick={() => signIn('google', { callbackUrl: '/' })}
+        onClick={() => signIn("google", { callbackUrl: "/" })}
         variant="outline"
         className="w-full gap-3 h-11 text-sm font-medium border-[hsl(var(--border))] hover:bg-[hsl(var(--muted))]"
       >
-        <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          className="w-4 h-4 shrink-0"
+          aria-hidden="true"
+        >
           <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
             fill="#4285F4"
@@ -115,33 +163,6 @@ export default function LoginButton() {
         </svg>
         Continue with Google
       </Button>
-
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-[hsl(var(--border))]" />
-        </div>
-        <div className="relative flex justify-center text-xs">
-          <span className="bg-[hsl(var(--card)/0.8)] px-2 text-[hsl(var(--muted-foreground))]">or</span>
-        </div>
-      </div>
-
-<form onSubmit={handleEmailSignIn} className="space-y-3">
-        <input
-          type="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full h-11 rounded-md border border-[hsl(var(--border))] bg-transparent px-3 text-sm text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:outline-none focus:ring-1 focus:ring-[hsl(var(--ring))]"
-        />
-        <Button
-          type="submit"
-          disabled={loading || !email}
-          className="w-full h-11 text-sm font-medium"
-        >
-          {loading ? 'Sending…' : 'Continue with Email'}
-        </Button>
-      </form>
     </div>
-  )
+  );
 }
